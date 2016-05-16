@@ -10,7 +10,7 @@ if __name__ == "__main__":
 		drate = drate[:-1]
 	elif drate.endswith('m') or drate.endswith('M'):
 		drate = drate[:-1] + '000'
-	else:
+	elif drate != '0':
 		print('Incorrect format.')
 		exit()
 	urate = sys.argv[3]
@@ -18,7 +18,7 @@ if __name__ == "__main__":
 		urate = urate[:-1]
 	elif urate.endswith('m') or urate.endswith('M'):
 		urate = urate[:-1] + '000'
-	else:
+	elif drate != '0':
 		print('Incorrect format.')
 		exit()
 	jsonStr = subprocess.check_output('docker inspect ' + cname, shell = True).replace('\n', ' ')
@@ -34,17 +34,23 @@ if __name__ == "__main__":
 	iplink = subprocess.check_output('ip netns exec ' + cname + ' ip link show', shell = True).split('\n')
 	for i in iplink:
 		s = i.split(':')
-		if len(s) > 1 and s[1] == ' eth0':
+		if len(s) > 1 and s[1].startswith(' eth0'):
 			vethid = int(s[0]) + 1
 	iplink = subprocess.check_output('ip link show', shell = True).split('\n')
 	for i in iplink:
 		s = i.split(':')
 		if len(s) > 1 and s[0] == str(vethid):
 			veth = s[1][1:]
+			at = veth.find('@')
+			if at == -1:
+				at = 0
+			veth = veth[:at]
 	os.system('tc qdisc del dev ' + veth + ' root')
-	os.system('tc qdisc add dev ' + veth + ' root tbf rate ' + drate + 'kbit latency 50ms burst ' + str(int(drate) / 2))
+	if drate != '0':
+		os.system('tc qdisc add dev ' + veth + ' root tbf rate ' + drate + 'kbit latency 50ms burst ' + str(int(drate) / 2))
 	os.system('ip netns exec ' + cname + ' tc qdisc del dev eth0 root')
-	os.system('ip netns exec ' + cname + ' tc qdisc add dev eth0 root tbf rate ' + urate + 'kbit latency 50ms burst ' + str(int(urate) / 2))
+	if urate != '0':
+		os.system('ip netns exec ' + cname + ' tc qdisc add dev eth0 root tbf rate ' + urate + 'kbit latency 50ms burst ' + str(int(urate) / 2))
 	uqdisc = subprocess.check_output('ip netns exec  ' + cname + ' tc qdisc show dev eth0', shell = True).rstrip('\n')
 	print('Egress policy')
 	print(uqdisc)
