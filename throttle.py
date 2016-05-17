@@ -18,7 +18,7 @@ if __name__ == "__main__":
 		urate = urate[:-1]
 	elif urate.endswith('m') or urate.endswith('M'):
 		urate = urate[:-1] + '000'
-	elif drate != '0':
+	elif urate != '0':
 		print('Incorrect format.')
 		exit()
 	jsonStr = subprocess.check_output('docker inspect ' + cname, shell = True).replace('\n', ' ')
