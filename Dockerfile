@@ -6,9 +6,11 @@ RUN apt-get install -y iperf wget build-essential
 RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz
 RUN tar zxvf qperf-0.4.9.tar.gz
 RUN rm qperf-0.4.9.tar.gz
-WORKDIR qperf-0.4.9
+WORKDIR /qperf-0.4.9
 RUN ./configure
 RUN make
 RUN make install
+WORKDIR /
+RUN rm -rf /qperf-0.4.9
 
 EXPOSE 5001
