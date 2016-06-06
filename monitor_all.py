@@ -59,7 +59,7 @@ if __name__ == "__main__":
 					elif uplink < 1024 * 1024 * 1024:
 						print('Uplink bandwidth: ' + str(uplink / 1024 / 1024) + ' mbytes/s')
 					
-					if len(sys.argv) > 2:	
-						es.index(index = 'network-' + str(datetime.datetime.now().date()), doc_type = 'throughput', body = {'Name': cname, 'RxBytes': downlink, 'TxBytes': uplink, 'timestamp': datetime.datetime.now()})
+					if len(sys.argv) > 1:	
+						es.index(index = 'network-' + str(datetime.datetime.now().date()), doc_type = 'throughput', body = {'pid': pid, 'cid': i, 'Name': cname, 'RxBytes': downlink, 'TxBytes': uplink, 'timestamp': datetime.datetime.utcnow()})
 					lastRxBytes = rxBytes
 					lastTxBytes = txBytes
