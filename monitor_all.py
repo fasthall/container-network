@@ -19,7 +19,7 @@ if __name__ == "__main__":
 	lastTxBytes = {}
 
 	while True:
-		time.sleep(1)
+		time.sleep(2)
 		os.system('clear')
 
 		docker_id = subprocess.check_output(['docker', 'ps', '-q']).split('\n')[:-1]
@@ -45,19 +45,19 @@ if __name__ == "__main__":
 							lastTxBytes[cid] = txBytes
 						print('Received: ' + str(rxBytes) + ' bytes ' + str(rxPackets) + ' packets')
 						print('Sent: ' + str(txBytes) + ' bytes ' + str(txPackets) + ' packets')
-						downlink = rxBytes - lastRxBytes[cid]
-						uplink = txBytes - lastTxBytes[cid]
+						downlink = (rxBytes - lastRxBytes[cid]) / 2
+						uplink = (txBytes - lastTxBytes[cid]) / 2
 						if downlink < 1024:
 							print('Downlink bandwidth: ' + str(downlink) + ' bytes/s')
 						elif downlink < 1024 * 1024:
 							print('Downlink bandwidth: ' + str(downlink / 1024) + ' kbytes/s')
-						elif downlink < 1024 * 1024 * 1024:
+						else:
 							print('Downlink bandwidth: ' + str(downlink / 1024 / 1024) + ' mbytes/s')
 						if uplink < 1024:
 							print('Uplink bandwidth: ' + str(uplink) + ' bytes/s')
 						elif uplink < 1024 * 1024:
 							print('Uplink bandwidth: ' + str(uplink / 1024) + ' kbytes/s')
-						elif uplink < 1024 * 1024 * 1024:
+						else:
 							print('Uplink bandwidth: ' + str(uplink / 1024 / 1024) + ' mbytes/s')
 	
 						if len(sys.argv) > 1:	
