@@ -1,37 +1,65 @@
 import os
-import subprocess
+import sys
 import time
 import json
+import getopt
+import subprocess
 
-def reload_config():
+def usage():
+	print('Usage: python ' + sys.argv[0] + ' [-f filename]')
+	print('')
+	print('Options:')
+	print('  -f, --file		Read configuration from specified file')
+	print('  -h, --help		This page')
+	print('')
+	print('The content of configuration file should look like this:')
+	print('  container_1 weight_1')
+	print('  container_2 weight_2')
+	print('  ...')
+	print('For example, the following configuration will force container c1 use 50% of bandwidth, c2 and c3 share the remaining 50%.')
+	print('  c1 2')
+	print('  c2 1')
+	print('  c3 1')
+
+def reload_config(filename):
 	rules = {}
 	for key in rules:
 		rules[key] = 0
 	try:
-		conf = open('config', 'r')
+		conf = open(filename, 'r')
+		print('Read configuration from ' + filename)
+		for line in conf:
+			rule = line.split(' ')
+			cname = rule[0]
+			weight = int(rule[1])
+			rules[cname] = weight
+		for key in rules.keys():
+			if rules[key] == 0:
+				del rules[key]
+		conf.close()
+	except IOError:
+		print('Cannot open configuration ' + filename)
+		exit(2)
 	except:
-		print('Cannot open config file')
-		exit(0)
-	for line in conf:
-		rule = line.split(' ')
-		cname = rule[0]
-		weight = int(rule[1])
-		rules[cname] = weight
-	for key in rules.keys():
-		if rules[key] == 0:
-			del rules[key]
-	conf.close()
+		print('Invalid configuration.')
+
 	return rules;
 
 def link_netns(rules):
-	for cid in rules:
-		jsonObj = json.loads(subprocess.check_output(['docker', 'inspect', cid]).replace('\n', ' '))[0]
+	# If the container is not found, it gets removed from the rules
+	os.system('sudo mkdir -p /var/run/netns')
+	for cid in rules.keys():
+		try:
+			jsonObj = json.loads(subprocess.check_output(['docker', 'inspect', cid]).replace('\n', ' '))[0]
+		except subprocess.CalledProcessError:
+			del rules[cid]
+			continue
 		pid = jsonObj['State']['Pid']
 		cname = str(jsonObj['Name'])
 		os.system('sudo rm /var/run/netns/' + cname)
 		os.system('sudo ln -s /proc/' + str(pid) + '/ns/net /var/run/netns/' + cname)
 
-def cal_bandwidth(lastRxBytes, rules):
+def cal_bandwidth(lastRxBytes, rules, freq):
 	ingress= {}
 	for cid in rules:
 		print(cid + ' ' + str(rules[cid]))
@@ -47,7 +75,7 @@ def cal_bandwidth(lastRxBytes, rules):
 					rxBytes = float(s[1])
 					if cid not in lastRxBytes:
 						lastRxBytes[cid] = rxBytes
-					ingress[cid] = (rxBytes - lastRxBytes[cid]) / 5
+					ingress[cid] = (rxBytes - lastRxBytes[cid]) / freq
 					lastRxBytes[cid] = rxBytes
 					print(str(ingress[cid] / 1024) + 'kbyte/s')
 			devfile.close()
@@ -73,22 +101,30 @@ def get_veth(cname):
 	return veth
 
 if __name__ == "__main__":
-	os.system('sudo mkdir -p /var/run/netns')
-	#lastRxBytes = {}
-	#while True:
-	rules = reload_config()
+	try:
+		opts, args = getopt.getopt(sys.argv[1:], 'hf:', ['help', 'file='])
+	except getopt.GetoptError:
+		usage()
+		exit(2)
+	
+	filename = 'weight.conf'
+	for opt, arg in opts:
+		if opt in ('-h', '--help'):
+			usage()
+			exit(2)
+		elif opt in ('-f', '--file'):
+			filename = arg
+		else:
+			usage()
+			exit(2)
+	
+	rules = reload_config(filename)
 	link_netns(rules)
 	total_weight = 0
 	for key in rules:
 		total_weight += rules[key]
-	#ingress = cal_bandwidth(lastRxBytes, rules)
-	#total_ingress = 0
-	#for key in ingress:
-	#	total_ingress += ingress[key]
-	#print('total: ' + str(total_ingress / 1024) + 'kbytes/s')
 	for cid in rules:
 		veth = get_veth(cid)
 		drate = 1024 * 100 / 8 * rules[cid] / total_weight
-		#print(cid + ': ' + str(drate) + 'kbytes/s')
 		os.system('sudo tc qdisc del dev ' + veth + ' root')
 		os.system('sudo tc qdisc add dev ' + veth + ' root tbf rate ' + str(drate * 8) + 'kbit latency 50ms burst ' + str(drate * 8 * 4))	
