@@ -10,7 +10,11 @@ def usage():
 	print('')
 	print('Options:')
 	print('  -f, --file        Read configuration from specified file')
+	print('  -t, --total       Set total bandwidth in megabits')
 	print('  -h, --help        This page')
+	print('')
+	print('Description:')
+	print('  Throttle container\'s bandwidth based on weighted shares.')
 	print('')
 	print('The content of configuration file should look like this:')
 	print('  container_1 weight_1')
@@ -102,15 +106,22 @@ def get_veth(cname):
 
 if __name__ == "__main__":
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], 'hf:', ['help', 'file='])
+		opts, args = getopt.getopt(sys.argv[1:], 'hf:t:', ['help', 'file=', 'total='])
 	except getopt.GetoptError:
 		usage()
 		exit(2)
 	
+	total = 100
 	for opt, arg in opts:
 		if opt in ('-h', '--help'):
 			usage()
 			exit(2)
+		elif opt in ('-t', '--total'):
+			try:
+				total = int(arg)
+			except ValueError:
+				print('Incorrect total bandwidth.')
+				exit(2)
 		elif opt in ('-f', '--file'):
 			filename = arg
 		else:
@@ -127,6 +138,6 @@ if __name__ == "__main__":
 		total_weight += rules[key]
 	for cid in rules:
 		veth = get_veth(cid)
-		drate = 1024 * 100 / 8 * rules[cid] / total_weight
+		drate = total * 1024 * 1024 * rules[cid] / total_weight
 		os.system('sudo tc qdisc del dev ' + veth + ' root')
-		os.system('sudo tc qdisc add dev ' + veth + ' root tbf rate ' + str(drate * 8) + 'kbit latency 50ms burst ' + str(drate * 8 * 4))	
+		os.system('sudo tc qdisc add dev ' + veth + ' root tbf rate ' + str(drate) + 'bit latency 50ms burst ' + str(drate / 250))	
