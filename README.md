@@ -39,10 +39,13 @@ python monitor.py [OPTIONS]
 	-h, --help        This page
 
 The content of configuration file should look like this:
+
 	container_1 weight_1
 	container_2 weight_2
-  ...
+	...
+
 For example, the following configuration will force container c1 use 50% of bandwidth, c2 and c3 share the remaining 50%.
+
 	c1 2
 	c2 1
 	c3 1
