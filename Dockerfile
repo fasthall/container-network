@@ -12,5 +12,6 @@ RUN make
 RUN make install
 WORKDIR /
 RUN rm -rf /qperf-0.4.9
+COPY ./download_large_file.sh /download_large_file.sh
 
 EXPOSE 5001

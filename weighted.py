@@ -9,8 +9,8 @@ def usage():
 	print('Usage: python ' + sys.argv[0] + ' [-f filename]')
 	print('')
 	print('Options:')
-	print('  -f, --file		Read configuration from specified file')
-	print('  -h, --help		This page')
+	print('  -f, --file        Read configuration from specified file')
+	print('  -h, --help        This page')
 	print('')
 	print('The content of configuration file should look like this:')
 	print('  container_1 weight_1')
@@ -23,12 +23,12 @@ def usage():
 
 def reload_config(filename):
 	rules = {}
-	for key in rules:
-		rules[key] = 0
 	try:
 		conf = open(filename, 'r')
 		print('Read configuration from ' + filename)
 		for line in conf:
+			if line.startswith('#'):
+				continue
 			rule = line.split(' ')
 			cname = rule[0]
 			weight = int(rule[1])
@@ -107,7 +107,6 @@ if __name__ == "__main__":
 		usage()
 		exit(2)
 	
-	filename = 'weight.conf'
 	for opt, arg in opts:
 		if opt in ('-h', '--help'):
 			usage()
@@ -117,6 +116,9 @@ if __name__ == "__main__":
 		else:
 			usage()
 			exit(2)
+	if 'filename' not in locals():
+		filename = 'weighted.conf'
+		print('Didn\'t specify filename, read from weighted.conf.')
 	
 	rules = reload_config(filename)
 	link_netns(rules)
