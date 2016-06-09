@@ -1,3 +1,6 @@
+#Requirement
+	pip install elasticsearch
+
 #monitor.py
 
 ##Description:
