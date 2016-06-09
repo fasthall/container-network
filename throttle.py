@@ -8,7 +8,7 @@ def usage():
 	print('Usage: python ' + sys.argv[0] + ' CONTAINER_NAME [OPTIONS]')
 	print('')
 	print('Description:')
-	print('Set the download or upload speed limit of a container using tc and container\'s network namespace.')
+	print('  Set the download or upload speed limit of a container using tc and container\'s network namespace.')
 	print('')
 	print('Options:')
 	print('  -d, --download    #kmKM        Set download speed limit in specified unit')
