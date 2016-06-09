@@ -18,7 +18,8 @@ python monitor.py [OPTIONS]
 ##Description:
   Set the download or upload speed limit of a container using tc and container's network namespace.
 
-##Usage: python throttle.py CONTAINER_NAME [OPTIONS]
+##Usage:
+python throttle.py CONTAINER_NAME [OPTIONS]
 
 ##Options:
 	-d, --download    #kmKM        Set download speed limit in specified unit
@@ -31,7 +32,8 @@ python monitor.py [OPTIONS]
 ##Description:
   Throttle container's bandwidth based on weighted shares.
 
-##Usage: python weighted.py [-f filename]
+##Usage:
+python weighted.py [-f filename]
 
 ##Options:
 	-f, --file        Read configuration from specified file
