@@ -64,6 +64,9 @@ if __name__ == "__main__":
 		usage()
 		exit(2)
 	cname = sys.argv[1]
+	if cname == '-h' or cname == '--help':
+		usage()
+		exit(2)
 
 	opts, args = getopt.getopt(sys.argv[2:], 'd:u:ch', ['download=', 'upload=', 'clean', 'help'])
 	for opt, arg in opts:
