@@ -59,16 +59,16 @@ def get_veth(cname):
 		print('Container ' + cname + ' doesn\'t exist.')
 		exit(2)
 
-if __name__ == "__main__":
-	if len(sys.argv) < 2:
+def throttle(argv):
+	if len(argv) < 2:
 		usage()
 		exit(2)
-	cname = sys.argv[1]
+	cname = argv[1]
 	if cname == '-h' or cname == '--help':
 		usage()
 		exit(2)
 
-	opts, args = getopt.getopt(sys.argv[2:], 'd:u:ch', ['download=', 'upload=', 'clean', 'help'])
+	opts, args = getopt.getopt(argv[2:], 'd:u:ch', ['download=', 'upload=', 'clean', 'help'])
 	for opt, arg in opts:
 		if opt in ('-h', '--help'):
 			usage()
@@ -116,3 +116,6 @@ if __name__ == "__main__":
 	dqdisc = subprocess.check_output('sudo tc qdisc show dev ' + veth, shell = True).rstrip('\n')
 	print('Ingress policy')
 	print(dqdisc)
+
+if __name__ == "__main__":
+	throttle(sys.argv)

@@ -2,7 +2,7 @@ FROM ubuntu:xenial
 MAINTAINER Wei-Tsung Lin <fasthall@gmail.com>
 
 RUN apt-get update
-RUN apt-get install -y iperf wget build-essential
+RUN apt-get install -y iperf wget build-essential net-tools
 RUN wget https://www.openfabrics.org/downloads/qperf/qperf-0.4.9.tar.gz
 RUN tar zxvf qperf-0.4.9.tar.gz
 RUN rm qperf-0.4.9.tar.gz
