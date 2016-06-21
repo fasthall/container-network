@@ -14,6 +14,7 @@ def usage():
 	print('  -d, --download    #kmKM        Set download speed limit in specified unit')
 	print('  -u, --upload      #kmKM        Set upload speed limit in specified unit')
 	print('  -c, --clean                    Clean the speed limits')
+	print('  -q, --quiet                    Don\'t show message')
 	print('  -h, --help                     This page')
 
 def arg_to_rate(arg):
@@ -60,6 +61,7 @@ def get_veth(cname):
 		exit(2)
 
 def throttle(argv):
+	quiet = False
 	if len(argv) < 2:
 		usage()
 		exit(2)
@@ -68,11 +70,13 @@ def throttle(argv):
 		usage()
 		exit(2)
 
-	opts, args = getopt.getopt(argv[2:], 'd:u:ch', ['download=', 'upload=', 'clean', 'help'])
+	opts, args = getopt.getopt(argv[2:], 'd:u:cqh', ['download=', 'upload=', 'clean', 'quiet', 'help'])
 	for opt, arg in opts:
 		if opt in ('-h', '--help'):
 			usage()
 			exit(2)
+		elif opt in ('-q', '--quiet'):
+			quiet = True
 		elif opt in ('-d', '--download'):
 			drate = arg_to_rate(arg)
 		elif opt in ('-u', '--upload'):
@@ -113,11 +117,13 @@ def throttle(argv):
 	if 'urate' in locals():
 		os.system('sudo ip netns exec ' + cname + ' tc qdisc add dev eth0 root tbf rate ' + str(urate * 8) + 'bit latency 50ms burst ' + str(urate * 8 / 250))
 	uqdisc = subprocess.check_output('sudo ip netns exec  ' + cname + ' tc qdisc show dev eth0', shell = True).rstrip('\n')
-	print('Egress policy')
-	print(uqdisc)
+	if not quiet:
+		print('Egress policy')
+		print(uqdisc)
 	dqdisc = subprocess.check_output('sudo tc qdisc show dev ' + veth, shell = True).rstrip('\n')
-	print('Ingress policy')
-	print(dqdisc)
+	if not quiet:
+		print('Ingress policy')
+		print(dqdisc)
 
 if __name__ == "__main__":
 	throttle(sys.argv)
