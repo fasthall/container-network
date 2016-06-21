@@ -94,7 +94,9 @@ def throttle(argv):
 	except subprocess.CalledProcessError:
 		print('Container ' + cname + ' doesn\'t exist')
 		exit(2)
-	pid = json.loads(jsonStr)[0]['State']['Pid']
+	jsonObj = json.loads(jsonStr)[0]
+	pid = jsonObj['State']['Pid']
+	cname = str(jsonObj['Name'][1:])
 
 	# link netns namespace
 	#print("Container's PID: " + str(pid))
